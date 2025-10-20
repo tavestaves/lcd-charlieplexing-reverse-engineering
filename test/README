@@ -1,0 +1,123 @@
+
+This directory is intended for PlatformIO Test Runner and project tests.
+
+Unit Testing is a software testing method by which individual units of
+source code, sets of one or more MCU program modules together with associated
+control data, usage procedures, and operating procedures, are tested to
+determine whether they are fit for use. Unit testing finds problems early
+in the development cycle.
+
+More information about PlatformIO Unit Testing:
+- https://docs.platformio.org/en/latest/advanced/unit-testing/index.html
+
+
+/*
+map 
+SegmentPair segments[] = {
+    {5, 3},   // Segment A
+    {2, 5},   // Segment B
+    {3, 2},   // Segment C
+    {2, 3},   // Segment D
+    {4, 2},   // Segment E
+    {4, 3},   // Segment F
+    {7, 2},   // Segment G
+    {6, 2},   // Segment H
+    {5, 2},   // Segment Z
+    {6, 3},   // Segment I
+    {6, 4},   // Segment J
+    {7, 3},   // Segment K
+    {7, 4},   // Segment L
+    {5, 4},   // Segment M
+    {3, 4},   // Segment N
+    {2, 4},   // Segment O
+    {3, 5},   // Segment P
+    {4, 5},   // Segment Q
+};
+*/
+
+
+/* finder #include <Arduino.h>
+
+const int pins[] = {2, 3, 4, 5, 6, 7};   // your 6 test pins
+const int numPins = sizeof(pins) / sizeof(pins[0]);
+
+int i = 0;  // HIGH pin index
+int j = 1;  // LOW pin index
+
+// Function declarations (needed for PlatformIO)
+void showPair(int highIndex, int lowIndex);
+void nextPair();
+
+void setup() {
+  Serial.begin(9600);
+  Serial.println("=== Charlieplex Tester ===");
+  Serial.println("Press ENTER in Serial Monitor to step to the next pair.");
+  Serial.println("Observing pin pairs...");
+
+  for (int k = 0; k < numPins; k++) {
+    pinMode(pins[k], INPUT); // high-Z
+  }
+
+  showPair(i, j);  // show first pair
+}
+
+void loop() {
+  static bool waitingForRelease = false;
+
+  if (Serial.available()) {
+    char c = Serial.read();
+
+    // Only react to first Enter press (ignore repeats)
+    if (!waitingForRelease && (c == '\n' || c == '\r')) {
+      waitingForRelease = true;  // ignore extra chars for now
+      nextPair();
+      delay(200); // debounce delay
+    }
+
+    // Clear input buffer if user spammed Enter
+    while (Serial.available()) Serial.read();
+  }
+
+  // After delay, allow next press
+  if (waitingForRelease && millis() % 300 == 0) {
+    waitingForRelease = false;
+  }
+}
+
+void nextPair() {
+  j++;
+  if (j >= numPins) {
+    j = 0;
+    i++;
+    if (i >= numPins) {
+      Serial.println("✅ Done — All combinations tested!");
+      i = 0;
+      j = 1;
+    }
+  }
+  if (i == j) nextPair(); // skip same pin
+  else showPair(i, j);
+}
+
+void showPair(int highIndex, int lowIndex) {
+  // Set all pins high-Z
+  for (int k = 0; k < numPins; k++) {
+    pinMode(pins[k], INPUT);
+  }
+
+  // Drive one HIGH and one LOW
+  pinMode(pins[highIndex], OUTPUT);
+  digitalWrite(pins[highIndex], HIGH);
+
+  pinMode(pins[lowIndex], OUTPUT);
+  digitalWrite(pins[lowIndex], LOW);
+
+  Serial.print("Now driving: ");
+  Serial.print(pins[highIndex]);
+  Serial.print(" HIGH → ");
+  Serial.print(pins[lowIndex]);
+  Serial.print(" LOW");
+  Serial.print("  (Pair ");
+  Serial.print((i * (numPins - 1)) + j);
+  Serial.println(")");
+}
